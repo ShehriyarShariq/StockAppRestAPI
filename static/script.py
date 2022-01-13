@@ -1,8 +1,35 @@
-from kiteconnect import KiteConnect
+import pandas as pd
+import math
 
-kite = KiteConnect(api_key="5ov2hsy5honz4378")
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-# print(kite.login_url())
+if not firebase_admin._apps:
+    cred = credentials.Certificate('./key.json')
+    firebase_admin.initialize_app(cred)
 
-data = kite.generate_session("LSK3T6ppWqgLhfe47ESzyJyRRNAPJWP8", api_secret="44431oahmqfznkrnw9tu25bdahgvt4c2")
-kite.set_access_token(data["access_token"])
+firestore_db = firestore.client()
+
+stocksData = pd.read_json('./nse_stocks.json')
+
+stocks = stocksData.to_dict('records')
+
+MAX_ALLOWED_WRITES = 500
+
+ranges = [[MAX_ALLOWED_WRITES * i, (i * MAX_ALLOWED_WRITES) + MAX_ALLOWED_WRITES] for i in range(math.ceil(len(stocks) / MAX_ALLOWED_WRITES))]
+
+if ranges[-1][1] > len(stocks):
+    ranges[-1][1] = len(stocks)
+
+print(ranges)
+
+for selectedRange in ranges:
+    batch = firestore_db.batch()
+    for stock in stocks[selectedRange[0]:selectedRange[1]]:
+        batch.set(firestore_db.collection(u'stocks').document(), {
+            'code': stock['Code'],
+            'name': stock['Name'],
+            'currency': stock['Currency'],
+            'exchange': stock['Exchange'],
+        })
+    batch.commit()

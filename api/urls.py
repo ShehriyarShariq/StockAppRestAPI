@@ -4,5 +4,35 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # path('profile/', views.get_or_update_user, name='get_or_update_user'),
+    ################## AUTH ####################
+    path('register_user/', views.register_user, name='register_user'),
+    path('check_user/', views.check_user, name='check_user'),
+
+    ################ CUSTOMER ##################
+    path('get_recommended_stocks/', views.get_recommended_stocks, name='get_recommended_stocks'),
+    path('place_order/', views.place_order, name='place_order'),
+    path('get_customer_orders/', views.get_customer_orders, name='get_customer_orders'),
+    path('get_portfolio/', views.get_portfolio, name='get_portfolio'),
+
+    ################## ADMIN ###################
+    path('make_recommendation/', views.make_recommendation, name='make_recommendation'),
+    path('get_admin_orders/', views.get_admin_orders, name='get_admin_orders'),
+    path('get_executed_orders/', views.get_executed_orders, name='get_executed_orders'),
+    path('update_orders_status/', views.update_orders_status, name='update_orders_status'),
+
+    ################# SESSION ##################
+    path('get_events/', views.get_events, name='get_events'),
+    path('register_for_event/', views.register_for_event, name='register_for_event'),
+    path('create_event/', views.create_event, name='create_event'),
+
+    path('get_videos/', views.get_videos, name='get_videos'),
+    path('add_video/', views.add_video, name='add_video'),
+
+    path('get_blogs/', views.get_blogs, name='get_blogs'),
+    path('create_blog/', views.create_blog, name='create_blog'),
+
+    ################## MISC ####################
+    path('sync_contacts/', views.sync_contacts, name='sync_contacts'),
+    path('search/', views.search, name='search'),
+    path('get_notifications/', views.get_notifications, name='get_notifications'),
 ]
