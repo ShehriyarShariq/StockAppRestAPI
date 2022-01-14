@@ -583,16 +583,13 @@ def sync_contacts(request):
             isAdmin = request.POST['userType'] == 'Admin'
             contacts = json.loads(request.POST['contacts'])
 
-            print(type(contacts))
-
             users = firestore_db.collection(u'users').document(u'customers' if isAdmin else u'admin').collection(u'users').get()
             allUserPhoneNumbers = [user.to_dict()['phoneNum'] for user in users]
 
             batch = firestore_db.batch()
             for contact in contacts:
-                print(contact)
-                # if contact['phoneNum'] in allUserPhoneNumbers:
-                #     batch.set(firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').document(), contact)
+                if contact['phoneNum'] in allUserPhoneNumbers:
+                    batch.set(firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').document(), contact)
             batch.commit()
 
             return Response(data={"result": "success"}, status=200)
