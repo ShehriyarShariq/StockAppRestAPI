@@ -527,8 +527,6 @@ def get_videos(request):
 def add_video(request):
     if request.method == "POST":
         try:
-            
-
             videoURL = request.POST['videoURL']
 
             firestore_db.collection(u'videos').document().set({
@@ -549,9 +547,9 @@ def get_blogs(request):
         try:
             blogs = firestore_db.collection(u'blogs').get()
 
-            blogsList = [video.to_dict() for video in blogs]
+            blogsList = []
 
-            for blog in blogsList:
+            for blog in blogs:
                 blogsObj = blog.to_dict()
                 blogsObj['id'] = blog.id
                 blogsList.append(blogsObj)
