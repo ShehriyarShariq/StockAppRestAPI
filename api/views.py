@@ -37,8 +37,6 @@ def register_user(request):
             risk = request.POST['risk']
             timeframe = request.POST['timeframe']
 
-            print("DEBUG")
-
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).set({
                 'name': name,
                 'phoneNum': phoneNum,
@@ -581,15 +579,13 @@ def create_blog(request):
 def sync_contacts(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
             isAdmin = request.POST['userType'] == 'Admin'
             contacts = request.POST['contacts']
 
             users = firestore_db.collection(u'users').document(u'customers' if isAdmin else u'admin').collection(u'users').get()
-            allUserPhoneNumbers = [user['phoneNum'] for user in users]
-            
+            allUserPhoneNumbers = [user.to_dict()['phoneNum'] for user in users]
+
             batch = firestore_db.batch()
             for contact in contacts:
                 if contact['phoneNum'] in allUserPhoneNumbers:
