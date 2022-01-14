@@ -30,14 +30,14 @@ STOCK_DATA_API = "https://eodhistoricaldata.com/api/real-time/NETF.NSE?api_token
 def register_user(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
-            name = body['name']
-            phoneNum = body['phoneNum']
-            gender = body['gender']
-            risk = body['risk']
-            timeframe = body['timeframe']
+            uid = request.POST['uid']
+            name = request.POST['name']
+            phoneNum = request.POST['phoneNum']
+            gender = request.POST['gender']
+            risk = request.POST['risk']
+            timeframe = request.POST['timeframe']
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).set({
                 'name': name,
@@ -59,11 +59,7 @@ def register_user(request):
 def check_user(request):
     if request.method == "POST":
         try:
-            # body = json.loads(request.body)
-
-            uid = request.POST['uid'] # body['uid']
-
-            print(uid)
+            uid = request.POST['uid']
 
             user = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).get()
 
@@ -90,9 +86,7 @@ def check_user(request):
 def get_recommended_stocks(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
-
-            phoneNum = body['phoneNum']
+            phoneNum = request.POST['phoneNum']
 
             recommendedStocks = firestore_db.collection(u'recommended').where(u'users', "array_contains", phoneNum).get()
 
@@ -126,11 +120,9 @@ def get_recommended_stocks(request):
 def place_order(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
-
-            uid = body['uid']
-            phoneNum = body['phoneNum']
-            stockID = body['stockID']
+            uid = request.POST['uid']
+            phoneNum = request.POST['phoneNum']
+            stockID = request.POST['stockID']
 
             possibleAdmins = []
 
@@ -167,20 +159,20 @@ def place_order(request):
 
             firestore_db.collection(u'orders').document().set({
                 'admins': possibleAdmins,
-                'amount': body['amount'],
-                'buyPrice': body['buyPrice'],
+                'amount': request.POST['amount'],
+                'buyPrice': request.POST['buyPrice'],
                 'customerID': uid,
-                'quantity': body['quantity'],
+                'quantity': request.POST['quantity'],
                 'stockID': stockID,
                 'status': "Ordered",
             })
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
                 'admins': possibleAdmins,
-                'amount': body['amount'],
-                'buyPrice': body['buyPrice'],
+                'amount': request.POST['amount'],
+                'buyPrice': request.POST['buyPrice'],
                 'customerID': uid,
-                'quantity': body['quantity'],
+                'quantity': request.POST['quantity'],
                 'stockID': stockID,
                 'status': "Ordered",
             })
@@ -196,9 +188,9 @@ def place_order(request):
 def get_portfolio(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
+            uid = request.POST['uid']
 
             portfolio = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').get()
 
@@ -233,9 +225,9 @@ def get_portfolio(request):
 def get_customer_orders(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
+            uid = request.POST['uid']
 
             orders = firestore_db.collection(u'orders').where('customerID', "==", uid).get()
 
@@ -274,19 +266,19 @@ def get_customer_orders(request):
 def make_recommendation(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
-            phoneNum = body['phoneNum']
+            uid = request.POST['uid']
+            phoneNum = request.POST['phoneNum']
 
-            callType = body['type']
-            isBuy = body["isBuy"]
-            buyPrice = body["buyPrice"]
-            targetPrice = body["targetPrice"]
-            stopLoss = body["stopLoss"]
-            tag = body['tag']
-            risk = body['risk']
-            stockID = body['stockID']
+            callType = request.POST['type']
+            isBuy = request.POST["isBuy"]
+            buyPrice = request.POST["buyPrice"]
+            targetPrice = request.POST["targetPrice"]
+            stopLoss = request.POST["stopLoss"]
+            tag = request.POST['tag']
+            risk = request.POST['risk']
+            stockID = request.POST['stockID']
 
             users = firestore_db.collection(u'users').document(u'customers').collection(u'users').get()
 
@@ -331,9 +323,9 @@ def make_recommendation(request):
 def get_admin_orders(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            phoneNum = body['phoneNum']
+            phoneNum = request.POST['phoneNum']
 
             orders = firestore_db.collection(u'orders').where('admins', "array_contains", phoneNum).where(u'status', '==', "Ordered").get()
 
@@ -368,9 +360,9 @@ def get_admin_orders(request):
 def get_executed_orders(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            phoneNum = body['phoneNum']
+            phoneNum = request.POST['phoneNum']
 
             orders = firestore_db.collection(u'orders').where('admins', "array_contains", phoneNum).where(u'status', '==', "Executed").get()
 
@@ -405,9 +397,9 @@ def get_executed_orders(request):
 def update_orders_status(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            orderIDs = body['orders']
+            orderIDs = request.POST['orders']
             
             batch = firestore_db.batch()
             for orderID in orderIDs:
@@ -452,13 +444,13 @@ def get_events(request):
 def register_for_event(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
-            eventID = body['eventID']
-            name = body['name']
-            phoneNum = body['phoneNum']
-            email = body['email']
+            uid = request.POST['uid']
+            eventID = request.POST['eventID']
+            name = request.POST['name']
+            phoneNum = request.POST['phoneNum']
+            email = request.POST['email']
 
             firestore_db.collection(u'events').document(eventID).collection(u'attendees').document().set({
                 "userID": uid,
@@ -479,11 +471,11 @@ def register_for_event(request):
 def create_event(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            description = body['description']
-            documentURL = body['documentURL']
-            price = body['price']
+            description = request.POST['description']
+            documentURL = request.POST['documentURL']
+            price = request.POST['price']
 
             firestore_db.collection(u'events').document().set({
                 "description": description,
@@ -523,9 +515,9 @@ def get_videos(request):
 def add_video(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            videoURL = body['videoURL']
+            videoURL = request.POST['videoURL']
 
             firestore_db.collection(u'videos').document().set({
                 "url": videoURL,
@@ -563,11 +555,9 @@ def get_blogs(request):
 def create_blog(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
-
-            description = body['description']
-            documentURL = body['documentURL']
-            link = body['link']
+            description = request.POST['description']
+            documentURL = request.POST['documentURL']
+            link = request.POST['link']
 
             firestore_db.collection(u'blogs').document().set({
                 "description": description,
@@ -591,11 +581,11 @@ def create_blog(request):
 def sync_contacts(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
-            isAdmin = body['userType'] == 'Admin'
-            contacts = body['contacts']
+            uid = request.POST['uid']
+            isAdmin = request.POST['userType'] == 'Admin'
+            contacts = request.POST['contacts']
 
             users = firestore_db.collection(u'users').document(u'customers' if isAdmin else u'admin').collection(u'users').get()
             allUserPhoneNumbers = [user['phoneNum'] for user in users]
@@ -651,10 +641,10 @@ def search(request):
 def get_notifications(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            
 
-            uid = body['uid']
-            isAdmin = body['userType'] == 'Admin'
+            uid = request.POST['uid']
+            isAdmin = request.POST['userType'] == 'Admin'
             
             notifications = firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'notifications').get()
             
