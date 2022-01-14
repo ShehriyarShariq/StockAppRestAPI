@@ -92,6 +92,7 @@ def get_recommended_stocks(request):
 
             for stock in recommendedStocks:
                 stockObj = stock.to_dict()
+                stockObj['id'] = stock.id
                 stockID = stockObj['stockID']
                 
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
