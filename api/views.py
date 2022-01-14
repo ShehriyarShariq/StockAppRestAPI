@@ -73,7 +73,7 @@ def check_user(request):
                 if isAdmin:
                     return Response(data={"result": "success", "isNew": False, "isAdmin": True}, status=200)
                 else:
-                    return Response(data={"result": "success", "isNew": False, "isAdmin": False}, status=200)
+                    return Response(data={"result": "success", "isNew": True, "isAdmin": False}, status=200)
         except Exception as e:
             print(e)
             return Response(data={"result" : "failure"}, status=400)
