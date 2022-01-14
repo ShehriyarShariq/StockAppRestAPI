@@ -63,6 +63,8 @@ def check_user(request):
 
             uid = body['uid']
 
+            print(uid)
+
             user = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).get()
 
             if user.exists:
