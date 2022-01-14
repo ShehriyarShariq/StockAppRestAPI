@@ -626,13 +626,16 @@ def search(request):
 
                 stockObj['id'] = stock.id
 
-                stockObj['open'] = 180.1
-                stockObj['high'] = 185
-                stockObj['low'] = 178.5
-                stockObj['close'] = 184.74
-                stockObj['volume'] = 4032
-                stockObj['change'] = 3.11
-                stockObj['change_p'] = 1.7123
+                stockDetails = {}
+                stockDetails['open'] = 180.1
+                stockDetails['high'] = 185
+                stockDetails['low'] = 178.5
+                stockDetails['close'] = 184.74
+                stockDetails['volume'] = 4032
+                stockDetails['change'] = 3.11
+                stockDetails['change_p'] = 1.7123
+
+                stockObj['stock'] = stockDetails
 
                 queriedStocksList.append(stockObj)
 
