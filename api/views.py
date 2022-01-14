@@ -95,7 +95,6 @@ def get_recommended_stocks(request):
                 stockID = stockObj['stockID']
                 
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                print(stockDetails)
                 stockDetails['open'] = 180.1
                 stockDetails['high'] = 185
                 stockDetails['low'] = 178.5
