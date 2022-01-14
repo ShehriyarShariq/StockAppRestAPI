@@ -30,14 +30,14 @@ STOCK_DATA_API = "https://eodhistoricaldata.com/api/real-time/NETF.NSE?api_token
 def register_user(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
             name = request.POST['name']
             phoneNum = request.POST['phoneNum']
             gender = request.POST['gender']
             risk = request.POST['risk']
             timeframe = request.POST['timeframe']
+
+            print("DEBUG")
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).set({
                 'name': name,
