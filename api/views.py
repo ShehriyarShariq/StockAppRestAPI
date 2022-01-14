@@ -65,10 +65,10 @@ def check_user(request):
 
             user = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).get()
 
-            if user != None:
+            if user.exists:
                 return Response(data={"result": "success", "isNew": False, "isAdmin": False}, status=200)
             else:
-                isAdmin = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).get() != None
+                isAdmin = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).get().exists
 
                 if isAdmin:
                     return Response(data={"result": "success", "isNew": False, "isAdmin": True}, status=200)
