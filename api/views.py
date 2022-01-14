@@ -431,7 +431,12 @@ def get_events(request):
         try:
             events = firestore_db.collection(u'events').get()
 
-            eventsList = [event.to_dict() for event in events]
+            eventsList = []
+
+            for event in events:
+                eventObj = event.to_dict()
+                eventObj['id'] = event.id
+                eventsList.append(eventObj)
 
             return Response(data={"result": "success", "events": eventsList}, status=200)
 
@@ -447,12 +452,14 @@ def register_for_event(request):
         try:
             body = json.loads(request.body)
 
+            uid = body['uid']
             eventID = body['eventID']
             name = body['name']
             phoneNum = body['phoneNum']
             email = body['email']
 
             firestore_db.collection(u'events').document(eventID).collection(u'attendees').document().set({
+                "userID": uid,
                 "name": name,
                 "phoneNum": phoneNum,
                 "email": email,
@@ -474,13 +481,11 @@ def create_event(request):
 
             description = body['description']
             documentURL = body['documentURL']
-            isFree = body['isFree']
             price = body['price']
 
             firestore_db.collection(u'events').document().set({
                 "description": description,
                 "documentURL": documentURL,
-                "isFree": isFree,
                 "price": price,
                 "createdAt": SERVER_TIMESTAMP,
             })
@@ -498,7 +503,12 @@ def get_videos(request):
         try:
             videos = firestore_db.collection(u'videos').get()
 
-            videosList = [video.to_dict() for video in videos]
+            videosList = []
+
+            for video in videos:
+                videoObj = video.to_dict()
+                videoObj['id'] = video.id
+                videosList.append(videoObj)
 
             return Response(data={"result": "success", "videos": videosList}, status=200)
         except Exception as e:
@@ -534,6 +544,11 @@ def get_blogs(request):
             blogs = firestore_db.collection(u'blogs').get()
 
             blogsList = [video.to_dict() for video in blogs]
+
+            for blog in blogsList:
+                blogsObj = blog.to_dict()
+                blogsObj['id'] = video.id
+                blogsList.append(blogsObj)
 
             return Response(data={"result": "success", "blogs": blogsList}, status=200)
         except Exception as e:
