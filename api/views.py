@@ -223,8 +223,6 @@ def get_portfolio(request):
 def get_customer_orders(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
 
             orders = firestore_db.collection(u'orders').where('customerID', "==", uid).get()
@@ -250,6 +248,30 @@ def get_customer_orders(request):
                 ordersList.append(orderObj)
 
             return Response(data={"result": "success", "orders": ordersList}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def add_to_portfolio(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+            stockID = request.POST['stockID']
+            amount = request.POST['amount']
+            buyPrice = request.POST['buyPrice']
+            quantity = request.POST['quantity']
+            
+            firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
+                'amount': amount,
+                'buyPrice': buyPrice,
+                'quantity': quantity,
+                'stockID': stockID,
+            })
+
+            return Response(data={"result": "success"}, status=200)
         except Exception as e:
             print(e)
             return Response(data={"result" : "failure"}, status=400)
@@ -395,8 +417,6 @@ def get_executed_orders(request):
 def update_orders_status(request):
     if request.method == "POST":
         try:
-            
-
             orderIDs = request.POST['orders']
             
             batch = firestore_db.batch()
