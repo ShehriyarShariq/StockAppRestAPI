@@ -260,14 +260,8 @@ def add_to_portfolio(request):
         try:
             uid = request.POST['uid']
             stockID = request.POST['stockID']
-            amount = request.POST['amount']
-            buyPrice = request.POST['buyPrice']
-            quantity = request.POST['quantity']
             
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
-                'amount': amount,
-                'buyPrice': buyPrice,
-                'quantity': quantity,
                 'stockID': stockID,
             })
 
@@ -559,7 +553,7 @@ def get_blogs(request):
 
             for blog in blogsList:
                 blogsObj = blog.to_dict()
-                blogsObj['id'] = video.id
+                blogsObj['id'] = blog.id
                 blogsList.append(blogsObj)
 
             return Response(data={"result": "success", "blogs": blogsList}, status=200)
@@ -620,11 +614,11 @@ def sync_contacts(request):
     else:
         return Response(data={"result" : "failure"}, status=405)
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search(request):
-    if request.method == "GET":
+    if request.method == "POST":
         try:
-            queryTerm = request.GET['query']
+            queryTerm = request.POST['query']
 
             queriedStocks = firestore_db.collection('stocks').where(u'name', '<=', queryTerm + '\uf8ff').get()
 
