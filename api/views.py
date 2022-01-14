@@ -588,8 +588,9 @@ def sync_contacts(request):
 
             batch = firestore_db.batch()
             for contact in contacts:
-                if contact['phoneNum'] in allUserPhoneNumbers:
-                    batch.set(firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').document(), contact)
+                print(contact)
+                # if contact['phoneNum'] in allUserPhoneNumbers:
+                #     batch.set(firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').document(), contact)
             batch.commit()
 
             return Response(data={"result": "success"}, status=200)
