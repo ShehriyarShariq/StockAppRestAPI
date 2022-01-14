@@ -581,7 +581,7 @@ def sync_contacts(request):
         try:
             uid = request.POST['uid']
             isAdmin = request.POST['userType'] == 'Admin'
-            contacts = request.POST['contacts']
+            contacts = json.loads(request.POST['contacts'])
 
             print(type(contacts))
 
