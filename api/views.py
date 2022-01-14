@@ -456,8 +456,6 @@ def get_events(request):
 def register_for_event(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
             eventID = request.POST['eventID']
             name = request.POST['name']
@@ -618,7 +616,7 @@ def search(request):
         try:
             queryTerm = request.POST['query']
 
-            queriedStocks = firestore_db.collection('stocks').where(u'name', '<=', queryTerm + '\uf8ff').get()
+            queriedStocks = firestore_db.collection('stocks').where(u'nameSmall', '>=', queryTerm).where(u'nameSmall', '<=', queryTerm + '\uf8ff').get()
 
             queriedStocksList = []
 

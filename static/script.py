@@ -29,6 +29,7 @@ for selectedRange in ranges:
         batch.set(firestore_db.collection(u'stocks').document(), {
             'code': stock['Code'],
             'name': stock['Name'],
+            'nameSmall': stock['Name'].lower(),
             'currency': stock['Currency'],
             'exchange': stock['Exchange'],
         })
