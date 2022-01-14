@@ -158,10 +158,10 @@ def place_order(request):
 
             firestore_db.collection(u'orders').document().set({
                 'admins': possibleAdmins,
-                'amount': request.POST['amount'],
-                'buyPrice': request.POST['buyPrice'],
+                'amount': json.loads(request.POST['amount']),
+                'buyPrice': json.loads(request.POST['buyPrice']),
                 'customerID': uid,
-                'quantity': request.POST['quantity'],
+                'quantity': json.loads(request.POST['quantity']),
                 'stockID': stockID,
                 'status': "Ordered",
             })
