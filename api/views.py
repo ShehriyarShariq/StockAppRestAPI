@@ -583,6 +583,8 @@ def sync_contacts(request):
             isAdmin = request.POST['userType'] == 'Admin'
             contacts = request.POST['contacts']
 
+            print(type(contacts))
+
             users = firestore_db.collection(u'users').document(u'customers' if isAdmin else u'admin').collection(u'users').get()
             allUserPhoneNumbers = [user.to_dict()['phoneNum'] for user in users]
 
