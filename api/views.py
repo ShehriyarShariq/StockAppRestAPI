@@ -59,9 +59,9 @@ def register_user(request):
 def check_user(request):
     if request.method == "POST":
         try:
-            body = json.loads(request.body)
+            # body = json.loads(request.body)
 
-            uid = body['uid']
+            uid = request.POST['uid'] # body['uid']
 
             print(uid)
 
