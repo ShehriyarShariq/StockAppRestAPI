@@ -76,6 +76,55 @@ def check_user(request):
     else:
         return Response(data={"result" : "failure"}, status=405)
 
+@api_view(['POST'])
+def register_admin(request):
+    if request.method == "POST":
+        try:
+            name = request.POST['name']
+            email = request.POST['email']
+            phoneNum = request.POST['phoneNum']
+            password = request.POST['password']
+
+            user = auth.get_user_by_phone_number(phoneNum)
+
+            if user:
+                existingUserID = user.uid
+
+                auth.update_user(
+                    existingUserID,
+                    email=email,
+                    password=password,
+                    display_name=name,
+                )
+
+                firestore_db.collection(u'users').document(u'admin').collection(u'users').document(existingUserID).update({
+                    "name": name,
+                    "email": email,
+                    "phoneNum": phoneNum,
+                })
+
+                return Response(data={"result": "success"}, status=200)
+            else:
+                newUser = auth.create_user(
+                    email=email,
+                    password=password,
+                    display_name=name,
+                    phone_number=phoneNum
+                )
+
+                firestore_db.collection(u'users').document(u'admin').collection(u'users').document(newUser.uid).set({
+                    "name": name,
+                    "email": email,
+                    "phoneNum": phoneNum,
+                })
+
+                return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
 ############################################
 ################ CUSTOMER ##################
 ############################################

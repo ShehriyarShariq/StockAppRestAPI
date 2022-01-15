@@ -7,6 +7,7 @@ urlpatterns = [
     ################## AUTH ####################
     path('register_user/', views.register_user, name='register_user'),
     path('check_user/', views.check_user, name='check_user'),
+    path('register_admin/', views.register_admin, name='register_admin'),
 
     ################ CUSTOMER ##################
     path('get_recommended_stocks/', views.get_recommended_stocks, name='get_recommended_stocks'),
