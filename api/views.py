@@ -85,9 +85,15 @@ def register_admin(request):
             phoneNum = request.POST['phoneNum']
             password = request.POST['password']
 
-            user = auth.get_user_by_phone_number(phoneNum)
 
-            if user:
+            existingUserID = ""
+            try:
+                user = auth.get_user_by_phone_number(phoneNum)
+                existingUserID = user.uid
+            except:
+                pass
+
+            if existingUserID != "":
                 existingUserID = user.uid
 
                 auth.update_user(
