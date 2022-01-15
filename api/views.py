@@ -309,7 +309,7 @@ def make_recommendation(request):
             # adminContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
             for contact in usersList:
-                adminContactsList.append(contact['phoneNum'])
+                adminContactsList.append(contact)
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
