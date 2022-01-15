@@ -421,7 +421,7 @@ def get_executed_orders(request):
 def update_orders_status(request):
     if request.method == "POST":
         try:
-            orderIDs = request.POST['orders']
+            orderIDs = json.loads(request.POST['orders'])
             
             batch = firestore_db.batch()
             for orderID in orderIDs:
