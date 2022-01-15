@@ -33,6 +33,7 @@ urlpatterns = [
     path('create_blog/', views.create_blog, name='create_blog'),
 
     ################## MISC ####################
+    path('get_contacts/', views.get_contacts, name='get_contacts'),
     path('sync_contacts/', views.sync_contacts, name='sync_contacts'),
     path('search/', views.search, name='search'),
     path('get_notifications/', views.get_notifications, name='get_notifications'),

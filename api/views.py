@@ -168,10 +168,10 @@ def place_order(request):
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
                 'admins': possibleAdmins,
-                'amount': request.POST['amount'],
-                'buyPrice': request.POST['buyPrice'],
+                'amount': json.loads(request.POST['amount']),
+                'buyPrice': json.loads(request.POST['buyPrice']),
                 'customerID': uid,
-                'quantity': request.POST['quantity'],
+                'quantity': json.loads(request.POST['quantity']),
                 'stockID': stockID,
                 'status': "Ordered",
             })
@@ -187,19 +187,17 @@ def place_order(request):
 def get_portfolio(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
 
             portfolio = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').get()
 
             portfolioList = []
 
-            for order in portfolio:
-                orderObj = order.to_dict()
-                orderObj['id'] = order.id
+            for stock in portfolio:
+                stockObj = stock.to_dict()
+                stockObj['id'] = stock.id
 
-                stockID = orderObj['stockID']
+                stockID = stockObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
                 stockDetails['open'] = 180.1
                 stockDetails['high'] = 185
@@ -209,9 +207,9 @@ def get_portfolio(request):
                 stockDetails['change'] = 3.11
                 stockDetails['change_p'] = 1.7123
 
-                orderObj['stock'] = stockDetails
+                stockObj['stock'] = stockDetails
 
-                portfolioList.append(orderObj)
+                portfolioList.append(stockObj)
 
             return Response(data={"result": "success", "portfolio": portfolioList}, status=200)
         except Exception as e:
@@ -281,19 +279,20 @@ def add_to_portfolio(request):
 def make_recommendation(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
             phoneNum = request.POST['phoneNum']
 
-            callType = request.POST['type']
-            isBuy = request.POST["isBuy"]
-            buyPrice = request.POST["buyPrice"]
-            targetPrice = request.POST["targetPrice"]
-            stopLoss = request.POST["stopLoss"]
-            tag = request.POST['tag']
-            risk = request.POST['risk']
-            stockID = request.POST['stockID']
+            recommendation = json.loads(request.POST['recommendation'])
+
+            callType = recommendation['type']
+            isBuy = recommendation["isBuy"]
+            buyPrice = recommendation["buyPrice"]
+            targetPrice = recommendation["targetPrice"]
+            stopLoss = recommendation["stopLoss"]
+            tag = recommendation['tag']
+            risk = recommendation['risk']
+            stockID = recommendation['stockID']
+            usersList = recommendation['users']
 
             users = firestore_db.collection(u'users').document(u'customers').collection(u'users').get()
 
@@ -307,10 +306,10 @@ def make_recommendation(request):
                 if len(userContacts) > 0:
                     possibleUsers.append(userID)
 
-            adminContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'contacts').get()
+            # adminContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
-            for contact in adminContacts:
-                adminContactsList.append(contact.to_dict()['phoneNum'])
+            for contact in usersList:
+                adminContactsList.append(contact['phoneNum'])
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
@@ -338,8 +337,6 @@ def make_recommendation(request):
 def get_admin_orders(request):
     if request.method == "POST":
         try:
-            
-
             phoneNum = request.POST['phoneNum']
 
             orders = firestore_db.collection(u'orders').where('admins', "array_contains", phoneNum).where(u'status', '==', "Ordered").get()
@@ -362,6 +359,13 @@ def get_admin_orders(request):
 
                 orderObj['stock'] = stockDetails
 
+                userID = orderObj['customerID']
+                userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
+                if userDetails.exists:
+                    userDetailsObj = userDetails.to_dict()
+                    orderObj['customerName'] = userDetailsObj['name']
+                    orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
+
                 ordersList.append(orderObj)
 
             return Response(data={"result": "success", "orders": ordersList}, status=200)
@@ -375,8 +379,6 @@ def get_admin_orders(request):
 def get_executed_orders(request):
     if request.method == "POST":
         try:
-            
-
             phoneNum = request.POST['phoneNum']
 
             orders = firestore_db.collection(u'orders').where('admins', "array_contains", phoneNum).where(u'status', '==', "Executed").get()
@@ -396,6 +398,13 @@ def get_executed_orders(request):
                 stockDetails['volume'] = 4032
                 stockDetails['change'] = 3.11
                 stockDetails['change_p'] = 1.7123
+
+                userID = orderObj['customerID']
+                userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
+                if userDetails.exists:
+                    userDetailsObj = userDetails.to_dict()
+                    orderObj['customerName'] = userDetailsObj['name']
+                    orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
 
                 orderObj['stock'] = stockDetails
 
@@ -587,6 +596,29 @@ def create_blog(request):
 ############################################
 
 @api_view(['POST'])
+def get_contacts(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+
+            contacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
+
+            contactsList = []
+
+            for contact in contacts:
+                contactObj = contact.to_dict()
+                
+                contactsList.append(contactObj);                
+
+            return Response(data={"result": "success", "contacts" : contactsList}, status=200)
+            
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
 def sync_contacts(request):
     if request.method == "POST":
         try:
@@ -648,8 +680,6 @@ def search(request):
 def get_notifications(request):
     if request.method == "POST":
         try:
-            
-
             uid = request.POST['uid']
             isAdmin = request.POST['userType'] == 'Admin'
             
