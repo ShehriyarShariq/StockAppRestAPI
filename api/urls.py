@@ -38,4 +38,5 @@ urlpatterns = [
     path('sync_contacts/', views.sync_contacts, name='sync_contacts'),
     path('search/', views.search, name='search'),
     path('get_notifications/', views.get_notifications, name='get_notifications'),
+    path('save_token/', views.save_token, name='save_token'),
 ]

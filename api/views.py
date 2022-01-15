@@ -748,3 +748,22 @@ def get_notifications(request):
             return Response(data={"result" : "failure"}, status=400)
     else:
         return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def save_token(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+            isAdmin = request.POST['userType'] == 'Admin'
+            token = request.POST['token']
+            
+            firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).update({
+                "token": token
+            })
+
+            return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
