@@ -39,4 +39,5 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('get_notifications/', views.get_notifications, name='get_notifications'),
     path('save_token/', views.save_token, name='save_token'),
+    path('try_notif_sender/', views.try_notif_sender, name='try_notif_sender')
 ]

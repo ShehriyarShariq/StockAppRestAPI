@@ -9,7 +9,7 @@ import os
 import json
 
 import firebase_admin
-from firebase_admin import credentials, auth, firestore
+from firebase_admin import credentials, auth, firestore, messaging
 from firebase_admin.firestore import SERVER_TIMESTAMP
 
 if not firebase_admin._apps:
@@ -209,8 +209,6 @@ def place_order(request):
                 if adminPhoneNum in userContactsList:
                     possibleAdmins.append(adminPhoneNum)
 
-            print(possibleAdmins)
-
             firestore_db.collection(u'orders').document().set({
                 'admins': possibleAdmins,
                 'amount': json.loads(request.POST['amount']),
@@ -219,6 +217,7 @@ def place_order(request):
                 'quantity': json.loads(request.POST['quantity']),
                 'stockID': stockID,
                 'status': "Ordered",
+                "createdAt": SERVER_TIMESTAMP,
             })
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
@@ -229,6 +228,7 @@ def place_order(request):
                 'quantity': json.loads(request.POST['quantity']),
                 'stockID': stockID,
                 'status': "Ordered",
+                "createdAt": SERVER_TIMESTAMP,
             })
 
             return Response(data={"result": "success"}, status=200)
@@ -500,6 +500,10 @@ def update_orders_status(request):
 def get_events(request):
     if request.method == "GET":
         try:
+            isLoadExtra = False
+            if "loadExtra" in request.GET:
+                isLoadExtra = True
+
             events = firestore_db.collection(u'events').get()
 
             eventsList = []
@@ -507,6 +511,16 @@ def get_events(request):
             for event in events:
                 eventObj = event.to_dict()
                 eventObj['id'] = event.id
+                eventObj['attendees'] = []
+
+                if isLoadExtra:
+                    attendees = firestore_db.collection(u'events').document(event.id).collection('attendees').get() 
+
+                    for attendee in attendees:
+                        attendeeObj = attendee.to_dict()
+                        attendeeObj['id'] = attendee.id
+                        eventObj['attendees'].append(attendeeObj)
+
                 eventsList.append(eventObj)
 
             return Response(data={"result": "success", "events": eventsList}, status=200)
@@ -760,6 +774,44 @@ def save_token(request):
             firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).update({
                 "token": token
             })
+
+            return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def save_token(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+            isAdmin = request.POST['userType'] == 'Admin'
+            token = request.POST['token']
+            
+            firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).update({
+                "token": token
+            })
+
+            return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def try_notif_sender(request):
+    if request.method == "POST":
+        try:
+            message = messaging.MulticastMessage(
+                data={'score': '850', 'time': '2:45'},
+                tokens=["dD2bOOAeQNG2sPxbUngcrz:APA91bHE1ICsC7i_-FUV1oSCRHUpYv2wzVhBsBm5sd8EwmDwjP4oNWbCLqx6NA9Gq1ukM4couVcmEr7_l5Aj761nGXc8rK_u7ljQziLl7gXngeVaNofhBVf98CpswqrtTVebXg-zVrmn"],
+            )
+            response = messaging.send_multicast(message)
+
+            print(response)
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
