@@ -17,6 +17,7 @@ urlpatterns = [
     path('add_to_portfolio/', views.add_to_portfolio, name='add_to_portfolio'),
 
     ################## ADMIN ###################
+    path('get_admin_recommendations/', views.get_admin_recommendations, name='get_admin_recommendations'),
     path('make_recommendation/', views.make_recommendation, name='make_recommendation'),
     path('get_admin_orders/', views.get_admin_orders, name='get_admin_orders'),
     path('get_executed_orders/', views.get_executed_orders, name='get_executed_orders'),

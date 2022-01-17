@@ -331,6 +331,41 @@ def add_to_portfolio(request):
 ############################################
 
 @api_view(['POST'])
+def get_admin_recommendations(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+
+            recommendedStocks = firestore_db.collection(u'recommended').where(u'createdBy', "==", uid).get()
+
+            recommendedStocksList = []
+
+            for stock in recommendedStocks:
+                stockObj = stock.to_dict()
+                stockObj['id'] = stock.id
+                stockID = stockObj['stockID']
+                
+                stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
+                stockDetails['open'] = 180.1
+                stockDetails['high'] = 185
+                stockDetails['low'] = 178.5
+                stockDetails['close'] = 184.74
+                stockDetails['volume'] = 4032
+                stockDetails['change'] = 3.11
+                stockDetails['change_p'] = 1.7123
+
+                stockObj['stock'] = stockDetails
+                
+                recommendedStocksList.append(stockObj)
+
+            return Response(data={"result": "success", "stocks": recommendedStocksList}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
 def make_recommendation(request):
     if request.method == "POST":
         try:
@@ -369,6 +404,7 @@ def make_recommendation(request):
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
             firestore_db.collection(u'recommended').document().set({
+                "createdBy": uid,
                 "buyPrice": buyPrice,
                 "createdAt": SERVER_TIMESTAMP,
                 "isBuy": isBuy,
