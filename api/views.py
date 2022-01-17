@@ -714,7 +714,7 @@ def sync_contacts(request):
 def search(request):
     if request.method == "POST":
         try:
-            queryTerm = request.POST['query']
+            queryTerm = request.POST['query'].lower()
 
             queriedStocks = firestore_db.collection('stocks').where(u'nameSmall', '>=', queryTerm).where(u'nameSmall', '<=', queryTerm + '\uf8ff').get()
 
