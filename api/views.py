@@ -211,10 +211,10 @@ def place_order(request):
 
             firestore_db.collection(u'orders').document().set({
                 'admins': possibleAdmins,
-                'amount': json.loads(request.POST['amount']),
-                'buyPrice': json.loads(request.POST['buyPrice']),
+                'amount': float(json.loads(request.POST['amount'])),
+                'buyPrice': float(json.loads(request.POST['buyPrice'])),
                 'customerID': uid,
-                'quantity': json.loads(request.POST['quantity']),
+                'quantity': float(json.loads(request.POST['quantity'])),
                 'stockID': stockID,
                 'status': "Ordered",
                 "createdAt": SERVER_TIMESTAMP,
@@ -222,10 +222,10 @@ def place_order(request):
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
                 'admins': possibleAdmins,
-                'amount': json.loads(request.POST['amount']),
-                'buyPrice': json.loads(request.POST['buyPrice']),
+                'amount': float(json.loads(request.POST['amount'])),
+                'buyPrice': float(json.loads(request.POST['buyPrice'])),
                 'customerID': uid,
-                'quantity': json.loads(request.POST['quantity']),
+                'quantity': float(json.loads(request.POST['quantity'])),
                 'stockID': stockID,
                 'status': "Ordered",
                 "createdAt": SERVER_TIMESTAMP,
@@ -341,9 +341,9 @@ def make_recommendation(request):
 
             callType = recommendation['type']
             isBuy = recommendation["isBuy"]
-            buyPrice = recommendation["buyPrice"]
-            targetPrice = recommendation["targetPrice"]
-            stopLoss = recommendation["stopLoss"]
+            buyPrice = float(recommendation["buyPrice"])
+            targetPrice = float(recommendation["targetPrice"])
+            stopLoss = float(recommendation["stopLoss"])
             tag = recommendation['tag']
             risk = recommendation['risk']
             stockID = recommendation['stockID']
@@ -560,11 +560,9 @@ def register_for_event(request):
 def create_event(request):
     if request.method == "POST":
         try:
-            
-
             description = request.POST['description']
             documentURL = request.POST['documentURL']
-            price = request.POST['price']
+            price = float(request.POST['price'])
 
             firestore_db.collection(u'events').document().set({
                 "description": description,
@@ -757,25 +755,6 @@ def get_notifications(request):
             notificationsList = [notif.to_dict() for notif in notifications]
 
             return Response(data={"result": "success", "notifications": notificationsList}, status=200)
-        except Exception as e:
-            print(e)
-            return Response(data={"result" : "failure"}, status=400)
-    else:
-        return Response(data={"result" : "failure"}, status=405)
-
-@api_view(['POST'])
-def save_token(request):
-    if request.method == "POST":
-        try:
-            uid = request.POST['uid']
-            isAdmin = request.POST['userType'] == 'Admin'
-            token = request.POST['token']
-            
-            firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).update({
-                "token": token
-            })
-
-            return Response(data={"result": "success"}, status=200)
         except Exception as e:
             print(e)
             return Response(data={"result" : "failure"}, status=400)
