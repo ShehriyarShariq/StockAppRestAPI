@@ -826,7 +826,7 @@ def try_notif_sender(request):
             )
             response = messaging.send_multicast(message)
 
-            print(response.SuccessCount)
+            print(response)
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
