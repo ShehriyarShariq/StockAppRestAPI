@@ -822,7 +822,7 @@ def try_notif_sender(request):
         try:
             message = messaging.MulticastMessage(
                 data={'score': '850', 'time': '2:45'},
-                tokens=["dD2bOOAeQNG2sPxbUngcrz:APA91bHE1ICsC7i_-FUV1oSCRHUpYv2wzVhBsBm5sd8EwmDwjP4oNWbCLqx6NA9Gq1ukM4couVcmEr7_l5Aj761nGXc8rK_u7ljQziLl7gXngeVaNofhBVf98CpswqrtTVebXg-zVrmn"],
+                tokens=["duwBGnJZSVq_l58NKsblwg:APA91bE-_fJ3XIAQ6XN16TFFWmffsK0uhv5m87Echhhgu8lEHXf4rHC7xgtf2aOmrOrrUzyg8nn4PQXhNiOHl-ZwDWpGG8vP3vDZAuEoQ4nl1mZTJrtocQFOav53yPQSgOfOnKSZyikn"],
             )
             response = messaging.send_multicast(message)
 
