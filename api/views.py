@@ -18,6 +18,7 @@ if not firebase_admin._apps:
 
 firestore_db = firestore.client()
 
+
 EOD_API_KEY = "61d5da6b638f50.66949714";
 
 STOCK_DATA_API = "https://eodhistoricaldata.com/api/real-time/NETF.NSE?api_token={}&fmt=json".format(EOD_API_KEY);
@@ -826,7 +827,7 @@ def try_notif_sender(request):
             )
             response = messaging.send_multicast(message)
 
-            print(response)
+            print('{0} messages were sent successfully'.format(response.success_count))
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
