@@ -805,6 +805,10 @@ def save_token(request):
             uid = request.POST['uid']
             isAdmin = request.POST['userType'] == 'Admin'
             token = request.POST['token']
+
+            print(uid);
+            print(isAdmin);
+            print(token);
             
             firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).update({
                 "token": token
