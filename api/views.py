@@ -180,11 +180,13 @@ def place_order(request):
             stockID = request.POST['stockID']
 
             possibleAdmins = []
+            possibleAdminTokens = []
 
             admins = firestore_db.collection(u'users').document(u'admin').collection(u'users').get()
             userContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'contacts').get()
 
             allAdmins = {}
+            allAdminsTokens = {}
 
             for admin in admins:
                 adminId = admin.id
@@ -197,8 +199,10 @@ def place_order(request):
 
                     if contactObj['phoneNum'] == phoneNum:
                         possibleAdmins.append(adminObj['phoneNum']) 
+                        possibleAdminTokens.append(adminObj['token'])
 
                 allAdmins[adminId] = adminObj['phoneNum']
+                allAdminsTokens[adminId] = adminObj['token']
 
             userContactsList = []
             for contact in userContacts:
@@ -207,8 +211,10 @@ def place_order(request):
 
             for adminId in allAdmins.keys():
                 adminPhoneNum = allAdmins[adminId]
+                adminToken = allAdminsTokens[adminId]
                 if adminPhoneNum in userContactsList:
                     possibleAdmins.append(adminPhoneNum)
+                    possibleAdminTokens.append(adminToken)
 
             firestore_db.collection(u'orders').document().set({
                 'admins': possibleAdmins,
@@ -231,6 +237,19 @@ def place_order(request):
                 'status': "Ordered",
                 "createdAt": SERVER_TIMESTAMP,
             })
+
+            userName = (auth.get_user(uid=uid)).display_name
+
+            stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
+
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title="New Order!",
+                    body="{} placed an order for {}".format(userName, stockName)
+                ),
+                tokens=possibleAdminTokens,
+            )
+            messaging.send_multicast(message)
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
@@ -388,19 +407,31 @@ def make_recommendation(request):
             users = firestore_db.collection(u'users').document(u'customers').collection(u'users').get()
 
             possibleUsers = []
+            possibleTokens = []
+
+            allUsers = {}
+            allUsersTokens = {}
 
             for user in users:
                 userID = user.id
+                userObj = user.to_dict()
 
                 userContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).collection(u'contacts').where('phoneNum', '==', phoneNum).get()
 
                 if len(userContacts) > 0:
                     possibleUsers.append(userID)
+                    possibleTokens.append(userObj['token'])
 
-            # adminContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'contacts').get()
+                allUsers[userID] = userObj['phoneNum']
+                allUsersTokens[userObj['phoneNum']] = userObj['token']
+
+            adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
-            for contact in usersList:
-                adminContactsList.append(contact)
+            for contact in adminContacts:
+                adminContactsList.append(contact['phoneNum'])
+                if contact['phoneNum'] in allUsersTokens:
+                    possibleTokens.append(allUsersTokens[contact['phoneNum']])
+
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
@@ -417,6 +448,17 @@ def make_recommendation(request):
                 "type": callType,
                 "users": possibleUsers
             })
+
+            stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
+
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title="New Recommendation!",
+                    body="You have a new recommendation for {}".format(stockName)
+                ),
+                tokens=possibleTokens,
+            )
+            messaging.send_multicast(message)
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
@@ -730,12 +772,19 @@ def sync_contacts(request):
             isAdmin = request.POST['userType'] == 'Admin'
             contacts = json.loads(request.POST['contacts'])
 
+            existingPhoneNumbers = []
+            adminExistingContacts = firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').get()
+            for contact in adminExistingContacts:
+                existingPhoneNumbers.append(contact['phoneNum'])
+
+            existingPhoneNumbers = list(set(existingPhoneNumbers))
+
             users = firestore_db.collection(u'users').document(u'customers' if isAdmin else u'admin').collection(u'users').get()
             allUserPhoneNumbers = [user.to_dict()['phoneNum'] for user in users]
 
             batch = firestore_db.batch()
             for contact in contacts:
-                if contact['phoneNum'] in allUserPhoneNumbers:
+                if contact['phoneNum'] in allUserPhoneNumbers and not (contact['phoneNum'] in existingPhoneNumbers):
                     batch.set(firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').document(), contact)
             batch.commit()
 
