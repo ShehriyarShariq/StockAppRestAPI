@@ -822,7 +822,10 @@ def try_notif_sender(request):
     if request.method == "POST":
         try:
             message = messaging.MulticastMessage(
-                data={'score': '850', 'time': '2:45'},
+                notification=messaging.Notification(
+                    title="Test",
+                    body="This is a test notification"
+                ),
                 tokens=["duwBGnJZSVq_l58NKsblwg:APA91bE-_fJ3XIAQ6XN16TFFWmffsK0uhv5m87Echhhgu8lEHXf4rHC7xgtf2aOmrOrrUzyg8nn4PQXhNiOHl-ZwDWpGG8vP3vDZAuEoQ4nl1mZTJrtocQFOav53yPQSgOfOnKSZyikn"],
             )
             response = messaging.send_multicast(message)
