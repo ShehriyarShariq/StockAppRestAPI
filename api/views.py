@@ -199,10 +199,12 @@ def place_order(request):
 
                     if contactObj['phoneNum'] == phoneNum:
                         possibleAdmins.append(adminObj['phoneNum']) 
-                        possibleAdminTokens.append(adminObj['token'])
+                        if 'token' in adminObj:
+                            possibleAdminTokens.append(adminObj['token'])
 
                 allAdmins[adminId] = adminObj['phoneNum']
-                allAdminsTokens[adminId] = adminObj['token']
+                if 'token' in adminObj:
+                    allAdminsTokens[adminId] = adminObj['token']
 
             userContactsList = []
             for contact in userContacts:
