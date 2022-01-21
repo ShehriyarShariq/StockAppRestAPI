@@ -420,10 +420,12 @@ def make_recommendation(request):
 
                 if len(userContacts) > 0:
                     possibleUsers.append(userID)
-                    possibleTokens.append(userObj['token'])
+                    if 'token' in userObj:
+                        possibleTokens.append(userObj['token'])
 
                 allUsers[userID] = userObj['phoneNum']
-                allUsersTokens[userObj['phoneNum']] = userObj['token']
+                if 'token' in userObj:
+                    allUsersTokens[userObj['phoneNum']] = userObj['token']
 
             adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
