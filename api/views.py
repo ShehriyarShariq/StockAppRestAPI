@@ -432,6 +432,8 @@ def make_recommendation(request):
                 if 'token' in userObj:
                     allUsersTokens[userObj['phoneNum']] = userObj['token']
 
+            print("IDENTIFYING ERROR")
+
             adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
             for contact in adminContacts:
@@ -441,6 +443,8 @@ def make_recommendation(request):
 
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
+
+            print("IDENTIFYING ERROR 1")
 
             firestore_db.collection(u'recommended').document().set({
                 "createdBy": uid,
@@ -456,7 +460,11 @@ def make_recommendation(request):
                 "users": possibleUsers
             })
 
+            print("IDENTIFYING ERROR 2")
+
             stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
+
+            print("IDENTIFYING ERROR 3")
 
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(
