@@ -469,6 +469,7 @@ def make_recommendation(request):
         try:
             uid = request.POST['uid']
             phoneNum = request.POST['phoneNum']
+            existingRecId = request.POST["recId"] if "recId" in request.POST else ""
 
             recommendation = json.loads(request.POST['recommendation'])
 
@@ -518,9 +519,9 @@ def make_recommendation(request):
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
-            callId = ((firestore_db.collection(u'counters').document(u'recommendations').get()).to_dict())['count']
+            callId = ((firestore_db.collection(u'counters').document(u'recommendations').get()).to_dict())['count'] if existingRecId == "" else recommendation['callId']
 
-            firestore_db.collection(u'recommended').document().set({
+            recommendationObj = {
                 "callId": callId,
                 "createdBy": uid,
                 "buyPrice": buyPrice,
@@ -533,11 +534,16 @@ def make_recommendation(request):
                 "targetPrice": targetPrice,
                 "type": callType,
                 "users": possibleUsers
-            })
+            }
 
-            firestore_db.collection(u'counters').document(u'recommendations').update({
-                "count": callId + 1
-            })
+            if existingRecId != "":
+                firestore_db.collection(u'recommended').document(existingRecId).set(recommendationObj)
+            else:
+                firestore_db.collection(u'recommended').document().set(recommendationObj)
+
+                firestore_db.collection(u'counters').document(u'recommendations').update({
+                    "count": callId + 1
+                })
 
             stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
 
