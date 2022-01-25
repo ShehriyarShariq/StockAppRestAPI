@@ -518,35 +518,35 @@ def make_recommendation(request):
 
             callId = ((firestore_db.collection(u'counters').document(u'recommendations').get()).to_dict())['count']
 
-            firestore_db.collection(u'recommended').document().set({
-                "callId": callId,
-                "createdBy": uid,
-                "buyPrice": buyPrice,
-                "createdAt": SERVER_TIMESTAMP,
-                "isBuy": isBuy,
-                "risk": risk,
-                "stockID": stockID,
-                "stopLoss": stopLoss,
-                "tag": tag,
-                "targetPrice": targetPrice,
-                "type": callType,
-                "users": possibleUsers
-            })
+            # firestore_db.collection(u'recommended').document().set({
+            #     "callId": callId,
+            #     "createdBy": uid,
+            #     "buyPrice": buyPrice,
+            #     "createdAt": SERVER_TIMESTAMP,
+            #     "isBuy": isBuy,
+            #     "risk": risk,
+            #     "stockID": stockID,
+            #     "stopLoss": stopLoss,
+            #     "tag": tag,
+            #     "targetPrice": targetPrice,
+            #     "type": callType,
+            #     "users": possibleUsers
+            # })
 
-            firestore_db.collection(u'counters').document(u'recommendations').update({
-                "count": callId + 1
-            })
+            # firestore_db.collection(u'counters').document(u'recommendations').update({
+            #     "count": callId + 1
+            # })
 
             stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
 
-            message = messaging.MulticastMessage(
-                notification=messaging.Notification(
-                    title="New Recommendation!",
-                    body="You have a new recommendation for {}".format(stockName)
-                ),
-                tokens=possibleTokens,
-            )
-            messaging.send_multicast(message)
+            # message = messaging.MulticastMessage(
+            #     notification=messaging.Notification(
+            #         title="New Recommendation!",
+            #         body="You have a new recommendation for {}".format(stockName)
+            #     ),
+            #     tokens=possibleTokens,
+            # )
+            # messaging.send_multicast(message)
 
             ranges = [[MAX_ALLOWED_WRITES * i, (i * MAX_ALLOWED_WRITES) + MAX_ALLOWED_WRITES] for i in range(math.ceil(len(possibleUserIds) / MAX_ALLOWED_WRITES))]
             if ranges[-1][1] > len(possibleUserIds):
