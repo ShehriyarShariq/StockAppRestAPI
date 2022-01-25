@@ -552,6 +552,9 @@ def make_recommendation(request):
             if ranges[-1][1] > len(possibleUserIds):
                 ranges[-1][1] = len(possibleUserIds)
 
+            print("DEBUG 01")
+            print(ranges)
+
             for selectedRange in ranges:
                 batch = firestore_db.batch()
                 for userId in possibleUserIds[selectedRange[0]:selectedRange[1]]:
@@ -561,6 +564,8 @@ def make_recommendation(request):
                         "type": "normal"
                     })
                 batch.commit()
+
+            print("DEBUG 02")
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
