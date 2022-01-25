@@ -10,7 +10,7 @@ if not firebase_admin._apps:
 
 firestore_db = firestore.client()
 
-stocksData = pd.read_json('./nse_stocks.json')
+stocksData = pd.read_json('./stocks.json')
 
 stocks = stocksData.to_dict('records')
 
@@ -26,11 +26,5 @@ print(ranges)
 for selectedRange in ranges:
     batch = firestore_db.batch()
     for stock in stocks[selectedRange[0]:selectedRange[1]]:
-        batch.set(firestore_db.collection(u'stocks').document(), {
-            'code': stock['Code'],
-            'name': stock['Name'],
-            'nameSmall': stock['Name'].lower(),
-            'currency': stock['Currency'],
-            'exchange': stock['Exchange'],
-        })
+        batch.set(firestore_db.collection(u'stocks').document(), stock)
     batch.commit()

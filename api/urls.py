@@ -14,13 +14,16 @@ urlpatterns = [
     path('place_order/', views.place_order, name='place_order'),
     path('get_customer_orders/', views.get_customer_orders, name='get_customer_orders'),
     path('get_portfolio/', views.get_portfolio, name='get_portfolio'),
+    path('close_order/', views.close_order, name='close_order'),
     path('add_to_portfolio/', views.add_to_portfolio, name='add_to_portfolio'),
 
     ################## ADMIN ###################
     path('get_admin_recommendations/', views.get_admin_recommendations, name='get_admin_recommendations'),
     path('make_recommendation/', views.make_recommendation, name='make_recommendation'),
     path('get_admin_orders/', views.get_admin_orders, name='get_admin_orders'),
-    path('get_executed_orders/', views.get_executed_orders, name='get_executed_orders'),
+    path('get_active_orders/', views.get_active_orders, name='get_active_orders'),
+    path('get_partial_orders/', views.get_partial_orders, name='get_partial_orders'),
+    path('get_completed_orders/', views.get_completed_orders, name='get_completed_orders'),
     path('update_orders_status/', views.update_orders_status, name='update_orders_status'),
 
     ################# SESSION ##################

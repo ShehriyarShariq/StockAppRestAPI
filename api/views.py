@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.conf import settings
 
+import math
 import os
 import json
 
@@ -18,6 +19,7 @@ if not firebase_admin._apps:
 
 firestore_db = firestore.client()
 
+MAX_ALLOWED_WRITES = 500
 
 EOD_API_KEY = "61d5da6b638f50.66949714";
 
@@ -38,13 +40,20 @@ def register_user(request):
             risk = request.POST['risk']
             timeframe = request.POST['timeframe']
 
+            custId = ((firestore_db.collection(u'counters').document(u'customers').get()).to_dict())['count']
+
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).set({
+                "custId": custId,
                 'name': name,
                 'phoneNum': phoneNum,
                 'gender': gender,
                 'risk': risk,
                 'timeframe': timeframe,
                 'createdAt': SERVER_TIMESTAMP,
+            })
+
+            firestore_db.collection(u'counters').document(u'customers').update({
+                "count": custId + 1,
             })
 
             return Response(data={"result" : "success"}, status=200)
@@ -177,8 +186,10 @@ def place_order(request):
         try:
             uid = request.POST['uid']
             phoneNum = request.POST['phoneNum']
+            callId = request.POST['callId']
             stockID = request.POST['stockID']
 
+            possibleAdminIds = set([])
             possibleAdmins = []
             possibleAdminTokens = []
 
@@ -198,6 +209,7 @@ def place_order(request):
                     contactObj = contact.to_dict()
 
                     if contactObj['phoneNum'] == phoneNum:
+                        possibleAdminIds.add(adminId)
                         possibleAdmins.append(adminObj['phoneNum']) 
                         if 'token' in adminObj:
                             possibleAdminTokens.append(adminObj['token'])
@@ -215,13 +227,25 @@ def place_order(request):
                 adminPhoneNum = allAdmins[adminId]
                 adminToken = allAdminsTokens[adminId]
                 if adminPhoneNum in userContactsList:
+                    possibleAdminIds.add(adminId)
                     possibleAdmins.append(adminPhoneNum)
                     possibleAdminTokens.append(adminToken)
 
+            custId = ((firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).get()).to_dict())['custId']
+
+            orderId = str(callId) + "_" + str(custId)
+
+            ordersByUser = firestore_db.collection(u'orders').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()
+
+            orderId += "_" + str(len(ordersByUser) + 1)
+
             firestore_db.collection(u'orders').document().set({
+                'orderId': orderId,
                 'admins': possibleAdmins,
                 'amount': float(json.loads(request.POST['amount'])),
                 'buyPrice': float(json.loads(request.POST['buyPrice'])),
+                'targetPrice': float(json.loads(request.POST['targetPrice'])),
+                'stopLoss': float(json.loads(request.POST['stopLoss'])),
                 'customerID': uid,
                 'quantity': float(json.loads(request.POST['quantity'])),
                 'stockID': stockID,
@@ -233,6 +257,8 @@ def place_order(request):
                 'admins': possibleAdmins,
                 'amount': float(json.loads(request.POST['amount'])),
                 'buyPrice': float(json.loads(request.POST['buyPrice'])),
+                'targetPrice': float(json.loads(request.POST['targetPrice'])),
+                'stopLoss': float(json.loads(request.POST['stopLoss'])),
                 'customerID': uid,
                 'quantity': float(json.loads(request.POST['quantity'])),
                 'stockID': stockID,
@@ -252,6 +278,20 @@ def place_order(request):
                 tokens=possibleAdminTokens,
             )
             messaging.send_multicast(message)
+
+            ranges = [[MAX_ALLOWED_WRITES * i, (i * MAX_ALLOWED_WRITES) + MAX_ALLOWED_WRITES] for i in range(math.ceil(len(possibleAdminIds) / MAX_ALLOWED_WRITES))]
+            if ranges[-1][1] > len(possibleAdminIds):
+                ranges[-1][1] = len(possibleAdminIds)
+
+            for selectedRange in ranges:
+                batch = firestore_db.batch()
+                for adminId in possibleAdminIds[selectedRange[0]:selectedRange[1]]:
+                    batch.set(firestore_db.collection(u'users').document(u'admin').collection(u'users').document(adminId).collection(u'notifications').document(), {
+                        "message": "{} placed an order for {}".format(userName, stockName),
+                        "timestamp": SERVER_TIMESTAMP,
+                        "type": "normal"
+                    })
+                batch.commit()
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
@@ -324,6 +364,40 @@ def get_customer_orders(request):
                 ordersList.append(orderObj)
 
             return Response(data={"result": "success", "orders": ordersList}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def close_order(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+            qty = request.POST['qty']
+            orderId = request.POST['orderId']
+
+            order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
+
+            isPartial = order['quantity'] > int(qty)
+
+            if isPartial:
+                firestore_db.collection(u'orders').document(orderId).update({
+                    'status': "Partial",
+                    'quantity': order['quantity'] - int(qty)
+                })
+
+            order['status'] = "Completed"
+            order['quantity'] = int(qty)
+
+            orderId = order['orderId'][0:order['orderId'].rfind('_')]
+
+            order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'completed').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
+
+            firestore_db.collection(u'completed').document().set(order)
+
+            return Response(data={"result": "success"}, status=200)
         except Exception as e:
             print(e)
             return Response(data={"result" : "failure"}, status=400)
@@ -408,6 +482,7 @@ def make_recommendation(request):
 
             users = firestore_db.collection(u'users').document(u'customers').collection(u'users').get()
 
+            possibleUserIds = set([])
             possibleUsers = []
             possibleTokens = []
 
@@ -420,11 +495,9 @@ def make_recommendation(request):
 
                 userContacts = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).collection(u'contacts').where('phoneNum', '==', phoneNum).get()
 
-                print(userObj)
-
                 if len(userContacts) > 0:
+                    possibleUserIds.add(userID)
                     possibleUsers.append(userID)
-                    print(userObj)
                     if 'token' in userObj:
                         possibleTokens.append(userObj['token'])
 
@@ -432,21 +505,21 @@ def make_recommendation(request):
                 if 'token' in userObj:
                     allUsersTokens[userObj['phoneNum']] = userObj['token']
 
-            print("IDENTIFYING ERROR")
-
             adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
             for contact in adminContacts:
                 contactObj = contact.to_dict()
+                possibleUserIds.add(contact['custId'])
                 adminContactsList.append(contactObj['phoneNum'])
                 if contactObj['phoneNum'] in allUsersTokens:
                     possibleTokens.append(allUsersTokens[contactObj['phoneNum']])
 
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
-            print("IDENTIFYING ERROR 1")
+            callId = ((firestore_db.collection(u'counters').document(u'recommendations').get()).to_dict())['count']
 
             firestore_db.collection(u'recommended').document().set({
+                "callId": callId,
                 "createdBy": uid,
                 "buyPrice": buyPrice,
                 "createdAt": SERVER_TIMESTAMP,
@@ -460,11 +533,11 @@ def make_recommendation(request):
                 "users": possibleUsers
             })
 
-            print("IDENTIFYING ERROR 2")
+            firestore_db.collection(u'counters').document(u'recommendations').update({
+                "count": callId + 1
+            })
 
             stockName = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()['name']
-
-            print("IDENTIFYING ERROR 3")
 
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(
@@ -474,6 +547,20 @@ def make_recommendation(request):
                 tokens=possibleTokens,
             )
             messaging.send_multicast(message)
+
+            ranges = [[MAX_ALLOWED_WRITES * i, (i * MAX_ALLOWED_WRITES) + MAX_ALLOWED_WRITES] for i in range(math.ceil(len(possibleUserIds) / MAX_ALLOWED_WRITES))]
+            if ranges[-1][1] > len(possibleUserIds):
+                ranges[-1][1] = len(possibleUserIds)
+
+            for selectedRange in ranges:
+                batch = firestore_db.batch()
+                for userId in possibleUserIds[selectedRange[0]:selectedRange[1]]:
+                    batch.set(firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userId).collection(u'notifications').document(), {
+                        "message": "You have a new recommendation for {}".format(stockName),
+                        "timestamp": SERVER_TIMESTAMP,
+                        "type": "normal"
+                    })
+                batch.commit()
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
@@ -512,6 +599,7 @@ def get_admin_orders(request):
                 userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
                 if userDetails.exists:
                     userDetailsObj = userDetails.to_dict()
+                    orderObj['custId'] = userDetailsObj['custId']
                     orderObj['customerName'] = userDetailsObj['name']
                     orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
 
@@ -525,12 +613,12 @@ def get_admin_orders(request):
         return Response(data={"result" : "failure"}, status=405)
 
 @api_view(['POST'])
-def get_executed_orders(request):
+def get_active_orders(request):
     if request.method == "POST":
         try:
             phoneNum = request.POST['phoneNum']
 
-            orders = firestore_db.collection(u'orders').where('admins', "array_contains", phoneNum).where(u'status', '==', "Executed").get()
+            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', '==', "Active").get()
 
             ordersList = []
 
@@ -552,6 +640,93 @@ def get_executed_orders(request):
                 userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
                 if userDetails.exists:
                     userDetailsObj = userDetails.to_dict()
+                    orderObj['custId'] = userDetailsObj['custId']
+                    orderObj['customerName'] = userDetailsObj['name']
+                    orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
+
+                orderObj['stock'] = stockDetails
+
+                ordersList.append(orderObj)
+
+            return Response(data={"result": "success", "orders": ordersList}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def get_partial_orders(request):
+    if request.method == "POST":
+        try:
+            phoneNum = request.POST['phoneNum']
+
+            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', '==', "Partial").get()
+
+            ordersList = []
+
+            for order in orders:
+                orderObj = order.to_dict()
+                orderObj['id'] = order.id
+
+                stockID = orderObj['stockID']
+                stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
+                stockDetails['open'] = 180.1
+                stockDetails['high'] = 185
+                stockDetails['low'] = 178.5
+                stockDetails['close'] = 184.74
+                stockDetails['volume'] = 4032
+                stockDetails['change'] = 3.11
+                stockDetails['change_p'] = 1.7123
+
+                userID = orderObj['customerID']
+                userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
+                if userDetails.exists:
+                    userDetailsObj = userDetails.to_dict()
+                    orderObj['custId'] = userDetailsObj['custId']
+                    orderObj['customerName'] = userDetailsObj['name']
+                    orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
+
+                orderObj['stock'] = stockDetails
+
+                ordersList.append(orderObj)
+
+            return Response(data={"result": "success", "orders": ordersList}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def get_completed_orders(request):
+    if request.method == "POST":
+        try:
+            phoneNum = request.POST['phoneNum']
+
+            orders = firestore_db.collection(u'completed').where('admins', "array_contains", phoneNum).get()
+
+            ordersList = []
+
+            for order in orders:
+                orderObj = order.to_dict()
+                orderObj['id'] = order.id
+
+                stockID = orderObj['stockID']
+                stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
+                stockDetails['open'] = 180.1
+                stockDetails['high'] = 185
+                stockDetails['low'] = 178.5
+                stockDetails['close'] = 184.74
+                stockDetails['volume'] = 4032
+                stockDetails['change'] = 3.11
+                stockDetails['change_p'] = 1.7123
+
+                userID = orderObj['customerID']
+                userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
+                if userDetails.exists:
+                    userDetailsObj = userDetails.to_dict()
+                    orderObj['custId'] = userDetailsObj['custId']
                     orderObj['customerName'] = userDetailsObj['name']
                     orderObj['customerPhoneNum'] = userDetailsObj['phoneNum']
 
@@ -572,11 +747,23 @@ def update_orders_status(request):
         try:
             orderIDs = json.loads(request.POST['orders'])
             
+            ordersById = {}
+
+            for orderId in orderIDs:
+                order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
+
+                order['status'] = 'Active'
+
+                ordersById[orderId] = order
+
             batch = firestore_db.batch()
             for orderID in orderIDs:
-                batch.update(firestore_db.collection(u'orders').document(orderID), {
-                    u'status': 'Executed'
-                })
+                batch.delete(firestore_db.collection(u'orders').document(orderID))
+            batch.commit()
+
+            batch = firestore_db.batch()
+            for orderID in orderIDs:
+                batch.set(firestore_db.collection(u'active').document(), ordersById[orderID])
             batch.commit()
             
             return Response(data={"result": "success"}, status=200)
