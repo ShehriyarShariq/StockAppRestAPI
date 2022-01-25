@@ -505,24 +505,18 @@ def make_recommendation(request):
                 if 'token' in userObj:
                     allUsersTokens[userObj['phoneNum']] = userObj['token']
 
-            print("DEBUG 01")
-
             adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(uid).collection(u'contacts').get()
             adminContactsList = []
             for contact in adminContacts:
                 contactObj = contact.to_dict()
-                possibleUserIds.add(contact['custId'])
+                possibleUserIds.add(contactObj['custId'])
                 adminContactsList.append(contactObj['phoneNum'])
                 if contactObj['phoneNum'] in allUsersTokens:
                     possibleTokens.append(allUsersTokens[contactObj['phoneNum']])
 
-            print("DEBUG 02")
-
             possibleUsers = list(set(adminContactsList).union(set(possibleUsers)))
 
             callId = ((firestore_db.collection(u'counters').document(u'recommendations').get()).to_dict())['count']
-
-            print("DEBUG 03")
 
             firestore_db.collection(u'recommended').document().set({
                 "callId": callId,
