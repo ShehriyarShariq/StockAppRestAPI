@@ -511,7 +511,7 @@ def make_recommendation(request):
             adminContactsList = []
             for contact in adminContacts:
                 contactObj = contact.to_dict()
-                possibleUserIds.add(contact['custId'])
+                possibleUserIds.add(contactObj['custId'])
                 adminContactsList.append(contactObj['phoneNum'])
                 if contactObj['phoneNum'] in allUsersTokens:
                     possibleTokens.append(allUsersTokens[contactObj['phoneNum']])
