@@ -556,15 +556,16 @@ def make_recommendation(request):
             print(ranges)
 
             for selectedRange in ranges:
-                batch = firestore_db.batch()
-                for userId in possibleUserIds[selectedRange[0]:selectedRange[1]]:
-                    print(userId)
+                # batch = firestore_db.batch()
+                print(selectedRange)
+                # for userId in possibleUserIds[selectedRange[0]:selectedRange[1]]:
+                #     print(userId)
                     # batch.set(firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userId).collection(u'notifications').document(), {
                     #     "message": "You have a new recommendation for {}".format(stockName),
                     #     "timestamp": SERVER_TIMESTAMP,
                     #     "type": "normal"
                     # })
-                batch.commit()
+                # batch.commit()
 
             print("DEBUG 02")
 
