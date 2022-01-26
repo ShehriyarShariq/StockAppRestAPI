@@ -379,6 +379,7 @@ def get_customer_orders(request):
 def close_order(request):
     if request.method == "POST":
         try:
+            print(request.POST)
             uid = request.POST['uid']
             notifId = request.POST['notifId']
             notifMsg = request.POST['notifMsg']
