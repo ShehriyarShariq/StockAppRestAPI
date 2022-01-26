@@ -346,10 +346,50 @@ def get_customer_orders(request):
             uid = request.POST['uid']
 
             orders = firestore_db.collection(u'orders').where('customerID', "==", uid).get()
+            activeOrders = firestore_db.collection(u'active').where('customerID', "==", uid).get()
+            completedOrders = firestore_db.collection(u'completed').where('customerID', "==", uid).get()
 
             ordersList = []
 
             for order in orders:
+                orderObj = order.to_dict()
+                orderObj['id'] = order.id
+
+                stockID = orderObj['stockID']
+                stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
+
+                orderObj['stock'] = stockDetails
+
+                ordersList.append(orderObj)
+
+            for order in activeOrders:
+                orderObj = order.to_dict()
+                orderObj['id'] = order.id
+
+                stockID = orderObj['stockID']
+                stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
+
+                orderObj['stock'] = stockDetails
+
+                ordersList.append(orderObj)
+
+            for order in completedOrders:
                 orderObj = order.to_dict()
                 orderObj['id'] = order.id
 
@@ -405,8 +445,8 @@ def close_order(request):
             firestore_db.collection(u'completed').document().set(order)
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'notifications').document(notifId).update({
-                "status": "normal",
-                "notifMsg": notifMsg + " Closed {}.".format(qty)
+                "type": "normal",
+                "message": notifMsg + " Closed {}.".format(qty)
             })
 
             return Response(data={"result": "success"}, status=200)
