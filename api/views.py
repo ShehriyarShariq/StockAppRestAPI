@@ -380,6 +380,8 @@ def close_order(request):
     if request.method == "POST":
         try:
             uid = request.POST['uid']
+            notifId = request.POST['notifId']
+            notifMsg = request.POST['notifMsg']
             qty = request.POST['qty']
             orderId = request.POST['orderId']
 
@@ -401,6 +403,11 @@ def close_order(request):
             order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'completed').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
 
             firestore_db.collection(u'completed').document().set(order)
+
+            firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'notifications').document(notifId).update({
+                "status": "normal",
+                "notifMsg": notifMsg + " Closed {}.".format(qty)
+            })
 
             return Response(data={"result": "success"}, status=200)
         except Exception as e:
