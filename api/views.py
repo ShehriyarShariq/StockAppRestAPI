@@ -379,35 +379,28 @@ def get_customer_orders(request):
 def close_order(request):
     if request.method == "POST":
         try:
-            print(request.POST)
             uid = request.POST['uid']
             notifId = request.POST['notifId']
             notifMsg = request.POST['notifMsg']
             qty = int(request.POST['qty'])
             orderId = request.POST['orderId']
-            print("DEBUG 01")
 
-            order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
+            order = (firestore_db.collection(u'active').document(orderId).get()).to_dict()
 
             isPartial = order['quantity'] > qty
 
-
             if isPartial:
-                firestore_db.collection(u'orders').document(orderId).update({
+                firestore_db.collection(u'active').document(orderId).update({
                     'status': "Partial",
                     'quantity': order['quantity'] - qty
                 })
 
             order['status'] = "Completed"
-            order['quantity'] = int(qty)
-
-            print("DEBUG 02")
+            order['quantity'] = qty
 
             orderId = order['orderId'][0:order['orderId'].rfind('_')]
 
             order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'completed').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
-
-            print("DEBUG 03")
 
             firestore_db.collection(u'completed').document().set(order)
 
