@@ -537,7 +537,7 @@ def make_recommendation(request):
             }
 
             if existingRecId != "":
-                firestore_db.collection(u'recommended').document(existingRecId).set(recommendationObj)
+                firestore_db.collection(u'recommended').document(existingRecId).update(recommendationObj)
             else:
                 firestore_db.collection(u'recommended').document().set(recommendationObj)
 
