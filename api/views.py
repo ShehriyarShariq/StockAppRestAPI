@@ -987,7 +987,8 @@ def sync_contacts(request):
             existingPhoneNumbers = []
             adminExistingContacts = firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'contacts').get()
             for contact in adminExistingContacts:
-                existingPhoneNumbers.append(contact['phoneNum'])
+                contactObj = contact.to_dict()
+                existingPhoneNumbers.append(contactObj['phoneNum'])
 
             existingPhoneNumbers = list(set(existingPhoneNumbers))
 
