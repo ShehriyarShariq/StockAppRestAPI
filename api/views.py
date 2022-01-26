@@ -410,6 +410,26 @@ def close_order(request):
         return Response(data={"result" : "failure"}, status=405)
 
 @api_view(['POST'])
+def hold_order(request):
+    if request.method == "POST":
+        try:
+            uid = request.POST['uid']
+            notifId = request.POST['notifId']
+            notifMsg = request.POST['notifMsg']
+
+            firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'notifications').document(notifId).update({
+                "status": "normal",
+                "notifMsg": notifMsg + " Proceeded to hold."
+            })
+
+            return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
 def add_to_portfolio(request):
     if request.method == "POST":
         try:
@@ -1060,7 +1080,13 @@ def get_notifications(request):
             
             notifications = firestore_db.collection(u'users').document(u'admin' if isAdmin else u'customers').collection(u'users').document(uid).collection(u'notifications').get()
             
-            notificationsList = [notif.to_dict() for notif in notifications]
+            notificationsList = []
+
+            for notif in notifications:
+                notifObj = notif.to_dict()
+                notifObj['id'] = notif.id
+
+                notificationsList.append(notifObj)
 
             return Response(data={"result": "success", "notifications": notificationsList}, status=200)
         except Exception as e:

@@ -15,6 +15,7 @@ urlpatterns = [
     path('get_customer_orders/', views.get_customer_orders, name='get_customer_orders'),
     path('get_portfolio/', views.get_portfolio, name='get_portfolio'),
     path('close_order/', views.close_order, name='close_order'),
+    path('hold_order/', views.hold_order, name='hold_order'),
     path('add_to_portfolio/', views.add_to_portfolio, name='add_to_portfolio'),
 
     ################## ADMIN ###################
