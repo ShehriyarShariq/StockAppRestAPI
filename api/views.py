@@ -199,8 +199,6 @@ def place_order(request):
             allAdmins = {}
             allAdminsTokens = {}
 
-            print("DEBUG 01")
-
             for admin in admins:
                 adminId = admin.id
                 adminContacts = firestore_db.collection(u'users').document(u'admin').collection(u'users').document(adminId).collection(u'contacts').get()
@@ -220,14 +218,10 @@ def place_order(request):
                 if 'token' in adminObj:
                     allAdminsTokens[adminId] = adminObj['token']
 
-            print("DEBUG 02")
-
             userContactsList = []
             for contact in userContacts:
                 contactObj = contact.to_dict()
                 userContactsList.append(contactObj['phoneNum'])
-
-            print("DEBUG 03")
 
             for adminId in allAdmins.keys():
                 adminPhoneNum = allAdmins[adminId]
@@ -235,9 +229,7 @@ def place_order(request):
                     possibleAdminIds.add(adminId)
                     possibleAdmins.append(adminPhoneNum)
                     if adminId in allAdminsTokens:
-                        possibleAdminTokens.append(adminToken)
-
-            print("DEBUG 04")
+                        possibleAdminTokens.append(allAdminsTokens[adminId])
 
             custId = ((firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).get()).to_dict())['custId']
 
@@ -246,8 +238,6 @@ def place_order(request):
             ordersByUser = firestore_db.collection(u'orders').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()
 
             orderId += "_" + str(len(ordersByUser) + 1)
-
-            print("DEBUG 05")
 
             firestore_db.collection(u'orders').document().set({
                 'orderId': orderId,
