@@ -385,12 +385,12 @@ def close_order(request):
             notifMsg = request.POST['notifMsg']
             qty = int(request.POST['qty'])
             orderId = request.POST['orderId']
+            print("DEBUG 01")
 
             order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
 
             isPartial = order['quantity'] > qty
 
-            print("DEBUG 01")
 
             if isPartial:
                 firestore_db.collection(u'orders').document(orderId).update({
