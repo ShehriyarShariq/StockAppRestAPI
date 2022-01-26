@@ -161,13 +161,14 @@ def get_recommended_stocks(request):
                 stockID = stockObj['stockID']
                 
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 stockObj['stock'] = stockDetails
                 
@@ -318,13 +319,14 @@ def get_portfolio(request):
 
                 stockID = stockObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 stockObj['stock'] = stockDetails
 
@@ -353,13 +355,14 @@ def get_customer_orders(request):
 
                 stockID = orderObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 orderObj['stock'] = stockDetails
 
@@ -444,13 +447,14 @@ def get_admin_recommendations(request):
                 stockID = stockObj['stockID']
                 
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 stockObj['stock'] = stockDetails
                 
@@ -595,13 +599,14 @@ def get_admin_orders(request):
 
                 stockID = orderObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 orderObj['stock'] = stockDetails
 
@@ -638,13 +643,14 @@ def get_active_orders(request):
 
                 stockID = orderObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 userID = orderObj['customerID']
                 userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
@@ -681,13 +687,14 @@ def get_partial_orders(request):
 
                 stockID = orderObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 userID = orderObj['customerID']
                 userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
@@ -724,13 +731,14 @@ def get_completed_orders(request):
 
                 stockID = orderObj['stockID']
                 stockDetails = (firestore_db.collection(u'stocks').document(stockID).get()).to_dict()
-                stockDetails['open'] = 180.1
-                stockDetails['high'] = 185
-                stockDetails['low'] = 178.5
-                stockDetails['close'] = 184.74
-                stockDetails['volume'] = 4032
-                stockDetails['change'] = 3.11
-                stockDetails['change_p'] = 1.7123
+                if not('open' in stockDetails):
+                    stockDetails['open'] = 180.1
+                    stockDetails['high'] = 185
+                    stockDetails['low'] = 178.5
+                    stockDetails['close'] = 184.74
+                    stockDetails['volume'] = 4032
+                    stockDetails['change'] = 3.11
+                    stockDetails['change_p'] = 1.7123
 
                 userID = orderObj['customerID']
                 userDetails = firestore_db.collection(u'users').document(u'customers').collection(u'users').document(userID).get()
@@ -1024,13 +1032,14 @@ def search(request):
 
                 stockObj['id'] = stock.id
 
-                stockObj['open'] = 180.1
-                stockObj['high'] = 185
-                stockObj['low'] = 178.5
-                stockObj['close'] = 184.74
-                stockObj['volume'] = 4032
-                stockObj['change'] = 3.11
-                stockObj['change_p'] = 1.7123
+                if not('open' in stockObj):
+                    stockObj['open'] = 180.1
+                    stockObj['high'] = 185
+                    stockObj['low'] = 178.5
+                    stockObj['close'] = 184.74
+                    stockObj['volume'] = 4032
+                    stockObj['change'] = 3.11
+                    stockObj['change_p'] = 1.7123
 
                 queriedStocksList.append(stockObj)
 
