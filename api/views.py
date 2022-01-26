@@ -379,11 +379,10 @@ def get_customer_orders(request):
 def close_order(request):
     if request.method == "POST":
         try:
-            print(request.POST['qty'])
             uid = request.POST['uid']
             notifId = request.POST['notifId']
             notifMsg = request.POST['notifMsg']
-            qty = int(json.loads(request.POST['qty']))
+            qty = int(request.POST['qty'])
             orderId = request.POST['orderId']
 
             order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
