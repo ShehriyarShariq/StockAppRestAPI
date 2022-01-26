@@ -382,7 +382,7 @@ def close_order(request):
             uid = request.POST['uid']
             notifId = request.POST['notifId']
             notifMsg = request.POST['notifMsg']
-            qty = int(json.loads(request.POST['qty']))
+            qty = int((json.loads(request.POST))['qty'])
             orderId = request.POST['orderId']
 
             order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
