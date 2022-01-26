@@ -387,20 +387,26 @@ def close_order(request):
 
             order = (firestore_db.collection(u'orders').document(orderId).get()).to_dict()
 
-            isPartial = order['quantity'] > int(qty)
+            isPartial = order['quantity'] > qty
+
+            print("DEBUG 01")
 
             if isPartial:
                 firestore_db.collection(u'orders').document(orderId).update({
                     'status': "Partial",
-                    'quantity': order['quantity'] - int(qty)
+                    'quantity': order['quantity'] - qty
                 })
 
             order['status'] = "Completed"
             order['quantity'] = int(qty)
 
+            print("DEBUG 02")
+
             orderId = order['orderId'][0:order['orderId'].rfind('_')]
 
             order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'completed').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
+
+            print("DEBUG 03")
 
             firestore_db.collection(u'completed').document().set(order)
 
