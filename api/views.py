@@ -231,11 +231,11 @@ def place_order(request):
 
             for adminId in allAdmins.keys():
                 adminPhoneNum = allAdmins[adminId]
-                adminToken = allAdminsTokens[adminId]
                 if adminPhoneNum in userContactsList:
                     possibleAdminIds.add(adminId)
                     possibleAdmins.append(adminPhoneNum)
-                    possibleAdminTokens.append(adminToken)
+                    if adminId in allAdminsTokens:
+                        possibleAdminTokens.append(adminToken)
 
             print("DEBUG 04")
 
