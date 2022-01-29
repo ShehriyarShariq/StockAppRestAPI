@@ -252,6 +252,7 @@ def place_order(request):
                 'stockID': stockID,
                 'status': "Ordered",
                 "createdAt": SERVER_TIMESTAMP,
+                'isBuy': bool(json.loads(request.POST['isBuy'])),
             })
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'portfolio').document().set({
@@ -265,6 +266,7 @@ def place_order(request):
                 'stockID': stockID,
                 'status': "Ordered",
                 "createdAt": SERVER_TIMESTAMP,
+                'isBuy': bool(json.loads(request.POST['isBuy'])),
             })
 
             userName = (auth.get_user(uid=uid)).display_name
