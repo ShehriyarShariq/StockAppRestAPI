@@ -435,14 +435,14 @@ def close_order(request):
                     'quantity': order['quantity'] - qty
                 })
 
-            order['status'] = "Completed"
+            order['status'] = "Close"
             order['quantity'] = qty
 
             orderId = order['orderId'][0:order['orderId'].rfind('_')]
 
-            order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'completed').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
+            order['orderId'] = orderId + "_" + str(len(firestore_db.collection(u'active').where('orderId', '>=', orderId).where(u'orderId', '<=', orderId + '\uf8ff').get()) + 1)
 
-            firestore_db.collection(u'completed').document().set(order)
+            firestore_db.collection(u'active').document().set(order)
 
             firestore_db.collection(u'users').document(u'customers').collection(u'users').document(uid).collection(u'notifications').document(notifId).update({
                 "type": "normal",
@@ -700,7 +700,7 @@ def get_active_orders(request):
         try:
             phoneNum = request.POST['phoneNum']
 
-            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', '==', "Active").get()
+            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', 'in', ["Active", "Partial"]).get()
 
             ordersList = []
 
@@ -739,12 +739,12 @@ def get_active_orders(request):
         return Response(data={"result" : "failure"}, status=405)
 
 @api_view(['POST'])
-def get_partial_orders(request):
+def get_orders_for_closure(request):
     if request.method == "POST":
         try:
             phoneNum = request.POST['phoneNum']
 
-            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', '==', "Partial").get()
+            orders = firestore_db.collection(u'active').where('admins', "array_contains", phoneNum).where(u'status', '==', "Close").get()
 
             ordersList = []
 
@@ -849,6 +849,38 @@ def update_orders_status(request):
             batch = firestore_db.batch()
             for orderID in orderIDs:
                 batch.set(firestore_db.collection(u'active').document(), ordersById[orderID])
+            batch.commit()
+            
+            return Response(data={"result": "success"}, status=200)
+        except Exception as e:
+            print(e)
+            return Response(data={"result" : "failure"}, status=400)
+    else:
+        return Response(data={"result" : "failure"}, status=405)
+
+@api_view(['POST'])
+def complete_orders(request):
+    if request.method == "POST":
+        try:
+            orderIDs = json.loads(request.POST['orders'])
+            
+            ordersById = {}
+
+            for orderId in orderIDs:
+                order = (firestore_db.collection(u'active').document(orderId).get()).to_dict()
+
+                order['status'] = 'Completed'
+
+                ordersById[orderId] = order
+
+            batch = firestore_db.batch()
+            for orderID in orderIDs:
+                batch.delete(firestore_db.collection(u'active').document(orderID))
+            batch.commit()
+
+            batch = firestore_db.batch()
+            for orderID in orderIDs:
+                batch.set(firestore_db.collection(u'completed').document(), ordersById[orderID])
             batch.commit()
             
             return Response(data={"result": "success"}, status=200)

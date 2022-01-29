@@ -23,9 +23,10 @@ urlpatterns = [
     path('make_recommendation/', views.make_recommendation, name='make_recommendation'),
     path('get_admin_orders/', views.get_admin_orders, name='get_admin_orders'),
     path('get_active_orders/', views.get_active_orders, name='get_active_orders'),
-    path('get_partial_orders/', views.get_partial_orders, name='get_partial_orders'),
+    path('get_orders_for_closure/', views.get_orders_for_closure, name='get_orders_for_closure'),
     path('get_completed_orders/', views.get_completed_orders, name='get_completed_orders'),
     path('update_orders_status/', views.update_orders_status, name='update_orders_status'),
+    path('complete_orders/', views.complete_orders, name='complete_orders'),
 
     ################# SESSION ##################
     path('get_events/', views.get_events, name='get_events'),
